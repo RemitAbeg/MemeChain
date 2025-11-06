@@ -4,7 +4,16 @@ import { useState, useMemo } from "react";
 import { MCNavbar } from "@/components/mc-navbar";
 import { BattleCard } from "@/components/battle-card";
 import { useBattles } from "@/hooks/useBattles";
-import { Zap, Trophy, Users, TrendingUp, Clock, Flame } from "lucide-react";
+import { useUSDCBalance } from "@/hooks/useUSDCBalance";
+import {
+  Zap,
+  Trophy,
+  Users,
+  TrendingUp,
+  Clock,
+  Flame,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 
 type TabType = "live" | "upcoming" | "past";
@@ -12,6 +21,11 @@ type TabType = "live" | "upcoming" | "past";
 export default function BattlesPage() {
   const [activeTab, setActiveTab] = useState<TabType>("live");
   const { battles, isLoading, error } = useBattles();
+  const {
+    formattedBalance,
+    isLoading: isLoadingBalance,
+    isConnected,
+  } = useUSDCBalance();
 
   const filteredBattles = useMemo(() => {
     if (!battles) return [];
@@ -96,7 +110,7 @@ export default function BattlesPage() {
           </p>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 max-w-5xl mx-auto">
             <div className="card-glass p-6 text-center group hover:shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-1">
               <Trophy className="w-8 h-8 text-primary mx-auto mb-3 group-hover:scale-110 transition-transform" />
               <div className="text-2xl md:text-3xl font-black text-primary mb-1">
@@ -139,6 +153,28 @@ export default function BattlesPage() {
                 Live Now
               </div>
             </div>
+
+            {/* USDC Balance - Only show if connected */}
+            {isConnected && (
+              <div className="card-glass p-4 md:p-6 text-center group hover:shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-1 border-2 border-primary/30 min-w-0 overflow-hidden">
+                <Wallet className="w-6 h-6 md:w-8 md:h-8 text-primary mx-auto mb-2 md:mb-3 group-hover:scale-110 transition-transform shrink-0" />
+                <div className="text-base md:text-lg lg:text-xl font-black text-primary mb-1 min-h-6 flex items-center justify-center">
+                  {isLoadingBalance ? (
+                    <span className="text-mc-text/40">...</span>
+                  ) : (
+                    <span
+                      className="truncate max-w-full"
+                      title={`$${formattedBalance}`}
+                    >
+                      ${formattedBalance}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-mc-text/60 uppercase tracking-wide">
+                  Your USDC
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
