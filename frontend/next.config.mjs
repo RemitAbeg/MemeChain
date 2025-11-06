@@ -6,6 +6,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+  webpack: (config) => {
+    config.externals.push("pino-pretty", "lokijs", "encoding");
+    return config;
+  },
+  // Add empty turbopack config to silence the warning
+  // The webpack config will be used when running with --webpack flag
+  turbopack: {},
+};
 
-export default nextConfig
+export default nextConfig;
