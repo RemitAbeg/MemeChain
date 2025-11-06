@@ -50,7 +50,7 @@ export function MCNavbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link
-              href="/"
+              href="/battles"
               className="text-sm text-mc-text hover:text-primary transition-colors"
             >
               Live
@@ -122,7 +122,7 @@ export function MCNavbar() {
         {mobileMenuOpen && (
           <div className="md:hidden pb-4 space-y-2 border-t border-primary/10 pt-4">
             <Link
-              href="/"
+              href="/battles"
               className="block px-4 py-2 text-mc-text hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
             >
               Live
