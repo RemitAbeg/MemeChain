@@ -41,8 +41,17 @@ export interface Battle {
 }
 
 // Map contract state enum to UI state string
-const mapStateToUI = (state: BattleState): UIState => {
-  const stateMap: Record<BattleState, UIState> = {
+const mapStateToUI = (
+  state: BattleState | bigint | number | undefined
+): UIState => {
+  const normalized =
+    state === undefined
+      ? -1
+      : typeof state === "bigint"
+      ? Number(state)
+      : Number(state);
+
+  const stateMap: Record<number, UIState> = {
     0: "UPCOMING",
     1: "SUBMISSION_OPEN",
     2: "VOTING_OPEN",
@@ -50,16 +59,30 @@ const mapStateToUI = (state: BattleState): UIState => {
     4: "FINALIZED",
     5: "ARCHIVED",
   };
-  return stateMap[state];
+
+  return stateMap[normalized] ?? "UPCOMING";
 };
 
 // Format USDC amount (6 decimals) to display string
-const formatUSDC = (amount: bigint): string => {
-  if (amount === 0n) return "0";
+const formatUSDC = (amount: bigint | number | string): string => {
+  let value: bigint;
+  if (typeof amount === "bigint") {
+    value = amount;
+  } else if (typeof amount === "number") {
+    value = BigInt(Math.trunc(amount));
+  } else {
+    try {
+      value = BigInt(amount);
+    } catch {
+      return "0";
+    }
+  }
+
+  if (value === 0n) return "0";
 
   const divisor = BigInt(1_000_000); // 6 decimals
-  const whole = amount / divisor;
-  const decimals = amount % divisor;
+  const whole = value / divisor;
+  const decimals = value % divisor;
 
   if (decimals === 0n) {
     return whole.toString();

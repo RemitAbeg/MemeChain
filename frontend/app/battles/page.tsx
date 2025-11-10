@@ -197,7 +197,7 @@ export default function BattlesPage() {
                 </p>
               </div>
               <Link
-                href="/submit"
+                href="/admin/battles"
                 className="hidden md:flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all hover:scale-105"
               >
                 <Zap className="w-4 h-4" />
@@ -263,7 +263,7 @@ export default function BattlesPage() {
                 No battles yet in this category
               </p>
               <Link
-                href="/submit"
+                href="/admin/battles"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all"
               >
                 <Zap className="w-4 h-4" />
