@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useParams } from "next/navigation";
 import { MCNavbar } from "@/components/mc-navbar";
 import { PhaseChip } from "@/components/phase-chip";
 import { Countdown } from "@/components/countdown";
@@ -13,20 +14,24 @@ import { formatAddress } from "@/lib/utils";
 import { Upload, Users, Zap, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function BattleDetailPage({ params }: PageProps) {
+export default function BattleDetailPage() {
+  const params = useParams<{ id: string }>();
+  const idParam = useMemo(() => {
+    if (!params) return undefined;
+    const raw = params.id;
+    if (Array.isArray(raw)) {
+      return raw[0];
+    }
+    return raw;
+  }, [params]);
   const [selectedMeme, setSelectedMeme] = useState<number | null>(null);
 
   // Parse battle ID from params
   const battleId = useMemo(() => {
-    const id = parseInt(params.id, 10);
+    if (!idParam) return undefined;
+    const id = parseInt(idParam, 10);
     return isNaN(id) ? undefined : id;
-  }, [params.id]);
+  }, [idParam]);
 
   // Fetch battle data
   const {
@@ -42,11 +47,24 @@ export default function BattleDetailPage({ params }: PageProps) {
     error: memesError,
   } = useBattleMemes(battleId);
 
+  const safeMemes = memes ?? [];
+
+  // Map memes to format expected by MemeGrid
+  const formattedMemes = useMemo(() => {
+    return safeMemes.map((meme) => ({
+      id: meme.id,
+      imageUrl: meme.imageUrl,
+      creator: formatAddress(meme.creator),
+      votes: meme.votes,
+      weight: meme.totalVoteWeight,
+    }));
+  }, [safeMemes]);
+
   // Find selected meme details
   const selectedMemeData = useMemo(() => {
-    if (!selectedMeme || !memes) return null;
-    return memes.find((m) => m.id === selectedMeme);
-  }, [selectedMeme, memes]);
+    if (!selectedMeme) return null;
+    return safeMemes.find((m) => m.id === selectedMeme) ?? null;
+  }, [selectedMeme, safeMemes]);
 
   // Convert prize pool string to number for PrizeMeter
   const prizePoolNumber = useMemo(() => {
@@ -65,7 +83,7 @@ export default function BattleDetailPage({ params }: PageProps) {
   // Loading state
   if (isLoadingBattle || isLoadingMemes) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-mc-bg via-mc-surface to-mc-bg">
+      <div className="min-h-screen bg-linear-to-br from-mc-bg via-mc-surface to-mc-bg">
         <MCNavbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
@@ -80,7 +98,7 @@ export default function BattleDetailPage({ params }: PageProps) {
   // Error state
   if (battleError || memesError || !battle) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-mc-bg via-mc-surface to-mc-bg">
+      <div className="min-h-screen bg-linear-to-br from-mc-bg via-mc-surface to-mc-bg">
         <MCNavbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
@@ -103,32 +121,21 @@ export default function BattleDetailPage({ params }: PageProps) {
     );
   }
 
-  // Map memes to format expected by MemeGrid
-  const formattedMemes = useMemo(() => {
-    return memes.map((meme) => ({
-      id: meme.id,
-      imageUrl: meme.imageUrl,
-      creator: formatAddress(meme.creator),
-      votes: meme.votes,
-      weight: meme.totalVoteWeight,
-    }));
-  }, [memes]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mc-bg via-mc-surface to-mc-bg">
+    <div className="min-h-screen bg-linear-to-br from-mc-bg via-mc-surface to-mc-bg">
       <MCNavbar />
 
       {/* Header */}
-      <section className="sticky top-16 z-40 bg-gradient-to-b from-mc-panel to-mc-surface/50 backdrop-blur-md border-b border-primary/20 px-4 py-6">
+      <section className="sticky top-16 z-40 bg-linear-to-b from-mc-panel to-mc-surface/50 backdrop-blur-md border-b border-primary/20 px-4 py-6">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">
+              <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-primary to-accent mb-2">
                 {battle.theme}
               </h1>
               <div className="flex items-center gap-4 flex-wrap">
                 <PhaseChip phase={battle.state as any} />
-                <div className="text-sm text-mc-text/70">ID: {params.id}</div>
+                <div className="text-sm text-mc-text/70">ID: {idParam}</div>
               </div>
             </div>
             {countdownEndTime > 0 && (
@@ -164,7 +171,7 @@ export default function BattleDetailPage({ params }: PageProps) {
                   </div>
                   <Link
                     href={`/submit?battleId=${battle.id}`}
-                    className="block w-full py-3 bg-gradient-to-r from-primary to-primary-700 text-mc-bg font-bold uppercase rounded-lg hover:shadow-lg hover:shadow-primary/50 transition-all text-center"
+                    className="block w-full py-3 bg-linear-to-r from-primary to-primary-700 text-mc-bg font-bold uppercase rounded-lg hover:shadow-lg hover:shadow-primary/50 transition-all text-center"
                   >
                     Upload Meme
                   </Link>
@@ -204,7 +211,7 @@ export default function BattleDetailPage({ params }: PageProps) {
             {/* Right: Sidebar */}
             <div className="space-y-6">
               {/* Prize Panel */}
-              <div className="p-6 rounded-xl bg-gradient-to-br from-mc-panel to-mc-surface border border-primary/20">
+              <div className="p-6 rounded-xl bg-linear-to-br from-mc-panel to-mc-surface border border-primary/20">
                 <h3 className="font-bold text-mc-text mb-4 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-warning" />
                   Prize Pool
@@ -236,7 +243,7 @@ export default function BattleDetailPage({ params }: PageProps) {
               )}
 
               {/* Battle Info */}
-              <div className="p-6 rounded-xl bg-gradient-to-br from-mc-panel to-mc-surface border border-primary/20 space-y-4">
+              <div className="p-6 rounded-xl bg-linear-to-br from-mc-panel to-mc-surface border border-primary/20 space-y-4">
                 <h3 className="font-bold text-mc-text mb-4">Battle Info</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
