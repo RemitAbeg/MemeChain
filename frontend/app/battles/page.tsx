@@ -74,7 +74,7 @@ export default function BattlesPage() {
   }, [battles]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mc-bg via-mc-surface to-mc-bg">
+    <div className="min-h-screen bg-linear-to-br from-mc-bg via-mc-surface to-mc-bg">
       <MCNavbar />
 
       {/* Hero Section */}
@@ -88,7 +88,7 @@ export default function BattlesPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-3 mb-6 px-4 py-2 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30">
+          <div className="inline-flex items-center gap-3 mb-6 px-4 py-2 rounded-full bg-linear-to-r from-primary/20 to-accent/20 border border-primary/30">
             <Flame className="w-5 h-5 text-primary animate-pulse" />
             <span className="text-xs font-bold text-primary uppercase tracking-widest">
               Live Arena
@@ -198,7 +198,7 @@ export default function BattlesPage() {
               </div>
               <Link
                 href="/admin/battles"
-                className="hidden md:flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all hover:scale-105"
+                className="hidden md:flex items-center gap-2 px-6 py-3 bg-linear-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all hover:scale-105"
               >
                 <Zap className="w-4 h-4" />
                 Create Battle
@@ -221,7 +221,7 @@ export default function BattlesPage() {
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)} Battles
                 {activeTab === tab && (
-                  <div className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent rounded-full" />
+                  <div className="absolute -bottom-4 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent rounded-full" />
                 )}
               </button>
             ))}
@@ -251,6 +251,8 @@ export default function BattlesPage() {
                   state={battle.state}
                   prizePool={battle.prizePool}
                   memesCount={battle.memesCount}
+                  minStake={battle.minStake}
+                  submissionStart={battle.submissionStart}
                   submissionEnd={battle.submissionEnd}
                   votingEnd={battle.votingEnd}
                 />
@@ -264,7 +266,7 @@ export default function BattlesPage() {
               </p>
               <Link
                 href="/admin/battles"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all"
               >
                 <Zap className="w-4 h-4" />
                 Create First Battle
@@ -329,12 +331,12 @@ export default function BattlesPage() {
                   key={i}
                   className="card-glass p-8 group hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 relative overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                   <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-6">
                       <div
-                        className={`w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
+                        className={`w-16 h-16 rounded-lg bg-linear-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
                       >
                         <Icon className={`w-8 h-8 ${colorClass}`} />
                       </div>
@@ -368,7 +370,7 @@ export default function BattlesPage() {
       <section className="px-4 md:px-6 py-20">
         <div className="mx-auto max-w-4xl">
           <div className="card-glass p-12 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/10"></div>
             <div className="relative z-10">
               <Trophy className="w-16 h-16 text-primary mx-auto mb-6 animate-pulse" />
               <h2
@@ -384,7 +386,7 @@ export default function BattlesPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/submit"
-                  className="px-8 py-4 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-linear-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-bold uppercase text-sm hover:shadow-lg hover:shadow-primary/50 transition-all hover:scale-105 flex items-center justify-center gap-2"
                 >
                   <Zap className="w-5 h-5" />
                   Start Battling

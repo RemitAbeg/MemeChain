@@ -40,6 +40,48 @@ export interface Battle {
   minStake: string;
 }
 
+const toBigInt = (
+  value: bigint | number | string | null | undefined,
+  fallback: bigint = 0n
+): bigint => {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value === "bigint") return value;
+  if (typeof value === "number") return BigInt(Math.trunc(value));
+  if (typeof value === "string") {
+    try {
+      return BigInt(value);
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+};
+
+const parseBattleStruct = (raw: any) => {
+  if (!raw) return null;
+
+  const get = (key: string, index: number) =>
+    raw?.[key as keyof typeof raw] ?? raw?.[index];
+
+  const idValue = get("id", 0);
+  const themeValue = get("theme", 1);
+
+  if (idValue === undefined || themeValue === undefined) {
+    return null;
+  }
+
+  return {
+    id: toBigInt(idValue),
+    theme: String(themeValue),
+    submissionStart: Number(toBigInt(get("submissionStart", 2))),
+    submissionEnd: Number(toBigInt(get("submissionEnd", 3))),
+    votingEnd: Number(toBigInt(get("votingEnd", 4))),
+    minStake: toBigInt(get("minStake", 5)),
+    maxSubmissionsPerUser: toBigInt(get("maxSubmissionsPerUser", 6)),
+    state: get("state", 7),
+  };
+};
+
 // Map contract state enum to UI state string
 const mapStateToUI = (
   state: BattleState | bigint | number | undefined
@@ -180,20 +222,21 @@ export function useBattles() {
       // Skip if battle data is not available
       if (!battleResult?.result) continue;
 
-      const battleStruct = battleResult.result as BattleStruct;
+      const parsedBattle = parseBattleStruct(battleResult.result);
+      if (!parsedBattle) continue;
       const prizePool = (prizePoolResult?.result as bigint | undefined) ?? 0n;
       const memeIds = (memeIdsResult?.result as bigint[] | undefined) ?? [];
 
       const formattedBattle: Battle = {
-        id: Number(battleStruct.id),
-        theme: battleStruct.theme,
-        state: mapStateToUI(battleStruct.state),
+        id: Number(parsedBattle.id),
+        theme: parsedBattle.theme,
+        state: mapStateToUI(parsedBattle.state),
         prizePool: formatUSDC(prizePool),
         memesCount: memeIds.length,
-        submissionStart: Number(battleStruct.submissionStart),
-        submissionEnd: Number(battleStruct.submissionEnd),
-        votingEnd: Number(battleStruct.votingEnd),
-        minStake: formatUSDC(battleStruct.minStake),
+        submissionStart: parsedBattle.submissionStart,
+        submissionEnd: parsedBattle.submissionEnd,
+        votingEnd: parsedBattle.votingEnd,
+        minStake: formatUSDC(parsedBattle.minStake),
       };
 
       formattedBattles.push(formattedBattle);
