@@ -41,7 +41,7 @@ export default function Home() {
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link
-                  href="/submit"
+                  href="/admin/battles"
                   className="px-8 py-4 border-2 border-primary/50 text-primary rounded-lg font-bold uppercase text-sm hover:bg-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all"
                 >
                   Create Battle

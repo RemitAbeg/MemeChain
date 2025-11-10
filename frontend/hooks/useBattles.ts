@@ -40,9 +40,60 @@ export interface Battle {
   minStake: string;
 }
 
+const toBigInt = (
+  value: bigint | number | string | null | undefined,
+  fallback: bigint = 0n
+): bigint => {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value === "bigint") return value;
+  if (typeof value === "number") return BigInt(Math.trunc(value));
+  if (typeof value === "string") {
+    try {
+      return BigInt(value);
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+};
+
+const parseBattleStruct = (raw: any) => {
+  if (!raw) return null;
+
+  const get = (key: string, index: number) =>
+    raw?.[key as keyof typeof raw] ?? raw?.[index];
+
+  const idValue = get("id", 0);
+  const themeValue = get("theme", 1);
+
+  if (idValue === undefined || themeValue === undefined) {
+    return null;
+  }
+
+  return {
+    id: toBigInt(idValue),
+    theme: String(themeValue),
+    submissionStart: Number(toBigInt(get("submissionStart", 2))),
+    submissionEnd: Number(toBigInt(get("submissionEnd", 3))),
+    votingEnd: Number(toBigInt(get("votingEnd", 4))),
+    minStake: toBigInt(get("minStake", 5)),
+    maxSubmissionsPerUser: toBigInt(get("maxSubmissionsPerUser", 6)),
+    state: get("state", 7),
+  };
+};
+
 // Map contract state enum to UI state string
-const mapStateToUI = (state: BattleState): UIState => {
-  const stateMap: Record<BattleState, UIState> = {
+const mapStateToUI = (
+  state: BattleState | bigint | number | undefined
+): UIState => {
+  const normalized =
+    state === undefined
+      ? -1
+      : typeof state === "bigint"
+      ? Number(state)
+      : Number(state);
+
+  const stateMap: Record<number, UIState> = {
     0: "UPCOMING",
     1: "SUBMISSION_OPEN",
     2: "VOTING_OPEN",
@@ -50,16 +101,30 @@ const mapStateToUI = (state: BattleState): UIState => {
     4: "FINALIZED",
     5: "ARCHIVED",
   };
-  return stateMap[state];
+
+  return stateMap[normalized] ?? "UPCOMING";
 };
 
 // Format USDC amount (6 decimals) to display string
-const formatUSDC = (amount: bigint): string => {
-  if (amount === 0n) return "0";
+const formatUSDC = (amount: bigint | number | string): string => {
+  let value: bigint;
+  if (typeof amount === "bigint") {
+    value = amount;
+  } else if (typeof amount === "number") {
+    value = BigInt(Math.trunc(amount));
+  } else {
+    try {
+      value = BigInt(amount);
+    } catch {
+      return "0";
+    }
+  }
+
+  if (value === 0n) return "0";
 
   const divisor = BigInt(1_000_000); // 6 decimals
-  const whole = amount / divisor;
-  const decimals = amount % divisor;
+  const whole = value / divisor;
+  const decimals = value % divisor;
 
   if (decimals === 0n) {
     return whole.toString();
@@ -157,20 +222,21 @@ export function useBattles() {
       // Skip if battle data is not available
       if (!battleResult?.result) continue;
 
-      const battleStruct = battleResult.result as BattleStruct;
+      const parsedBattle = parseBattleStruct(battleResult.result);
+      if (!parsedBattle) continue;
       const prizePool = (prizePoolResult?.result as bigint | undefined) ?? 0n;
       const memeIds = (memeIdsResult?.result as bigint[] | undefined) ?? [];
 
       const formattedBattle: Battle = {
-        id: Number(battleStruct.id),
-        theme: battleStruct.theme,
-        state: mapStateToUI(battleStruct.state),
+        id: Number(parsedBattle.id),
+        theme: parsedBattle.theme,
+        state: mapStateToUI(parsedBattle.state),
         prizePool: formatUSDC(prizePool),
         memesCount: memeIds.length,
-        submissionStart: Number(battleStruct.submissionStart),
-        submissionEnd: Number(battleStruct.submissionEnd),
-        votingEnd: Number(battleStruct.votingEnd),
-        minStake: formatUSDC(battleStruct.minStake),
+        submissionStart: parsedBattle.submissionStart,
+        submissionEnd: parsedBattle.submissionEnd,
+        votingEnd: parsedBattle.votingEnd,
+        minStake: formatUSDC(parsedBattle.minStake),
       };
 
       formattedBattles.push(formattedBattle);
