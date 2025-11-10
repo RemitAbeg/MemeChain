@@ -21,7 +21,23 @@ const pinata = new PinataSDK({
 });
 
 export async function uploadFileToIPFS(file: File) {
-  const upload = await pinata.upload.public.file(file);
+  const arrayBuffer = await file.arrayBuffer();
+  const rawName = (file as { name?: string }).name;
+  const fileName =
+    typeof rawName === "string" && rawName.trim().length > 0
+      ? rawName
+      : "memechain-upload";
+
+  const normalizedFile = new File([arrayBuffer], fileName, {
+    type: file.type || "application/octet-stream",
+  });
+
+  const upload = await pinata.upload.public.file(normalizedFile, {
+    metadata: {
+      name: fileName,
+    },
+  });
+
   const cid = upload.cid;
 
   return {
