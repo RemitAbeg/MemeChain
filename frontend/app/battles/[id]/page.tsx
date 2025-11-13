@@ -45,6 +45,7 @@ export default function BattleDetailPage() {
     memes,
     isLoading: isLoadingMemes,
     error: memesError,
+    refetch: refetchMemes,
   } = useBattleMemes(battleId);
 
   const safeMemes = memes ?? [];
@@ -227,20 +228,26 @@ export default function BattleDetailPage() {
               </div>
 
               {/* Vote Card for Desktop */}
-              {selectedMeme && selectedMemeData && (
-                <div>
-                  <h3 className="font-bold text-mc-text mb-3">Quick Vote</h3>
-                  <VoteCard
-                    memeId={selectedMeme}
-                    imageUrl={selectedMemeData.imageUrl}
-                    creator={formatAddress(selectedMemeData.creator)}
-                    votes={selectedMemeData.votes}
-                    weight={selectedMemeData.totalVoteWeight}
-                    minStake={battle.minStake}
-                    onVote={(amount) => console.log("Voted with", amount)}
-                  />
-                </div>
-              )}
+              {selectedMeme &&
+                selectedMemeData &&
+                battle.state === "VOTING_OPEN" && (
+                  <div>
+                    <h3 className="font-bold text-mc-text mb-3">Quick Vote</h3>
+                    <VoteCard
+                      battleId={battle.id}
+                      memeId={selectedMeme}
+                      imageUrl={selectedMemeData.imageUrl}
+                      creator={formatAddress(selectedMemeData.creator)}
+                      votes={selectedMemeData.votes}
+                      weight={selectedMemeData.totalVoteWeight}
+                      minStake={battle.minStake}
+                      onVoteSuccess={() => {
+                        // Refetch memes to update vote weights
+                        void refetchMemes();
+                      }}
+                    />
+                  </div>
+                )}
 
               {/* Battle Info */}
               <div className="p-6 rounded-xl bg-linear-to-br from-mc-panel to-mc-surface border border-primary/20 space-y-4">
