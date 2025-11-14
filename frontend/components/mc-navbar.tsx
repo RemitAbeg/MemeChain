@@ -34,15 +34,15 @@ export function MCNavbar() {
   }, [isConnected, isCorrectNetwork, switchChain, baseSepoliaChainId]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-primary/20 bg-gradient-to-b from-mc-panel to-mc-surface/50 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-primary/20 bg-linear-to-b from-mc-panel to-mc-surface/50 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-gradient-to-r from-primary to-primary-700 p-2 rounded-lg group-hover:shadow-lg group-hover:shadow-primary/50 transition-all">
+            <div className="bg-linear-to-r from-primary to-primary-700 p-2 rounded-lg group-hover:shadow-lg group-hover:shadow-primary/50 transition-all">
               <Zap className="w-5 h-5 text-mc-bg" />
             </div>
-            <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-700 to-accent hidden sm:inline">
+            <span className="text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-primary via-primary-700 to-accent hidden sm:inline">
               MemeChain
             </span>
           </Link>
@@ -54,6 +54,12 @@ export function MCNavbar() {
               className="text-sm text-mc-text hover:text-primary transition-colors"
             >
               Live
+            </Link>
+            <Link
+              href="/vote"
+              className="text-sm text-mc-text hover:text-primary transition-colors font-semibold"
+            >
+              Vote
             </Link>
             <Link
               href="/upcoming"
@@ -93,7 +99,7 @@ export function MCNavbar() {
                     Switch to Base Sepolia
                   </button>
                 )}
-                <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-semibold text-sm">
+                <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-semibold text-sm">
                   <Zap className="w-4 h-4" />
                   <span>{formatAddress(address)}</span>
                   <button
@@ -128,6 +134,12 @@ export function MCNavbar() {
               Live
             </Link>
             <Link
+              href="/vote"
+              className="block px-4 py-2 text-mc-text hover:text-primary hover:bg-primary/10 rounded-lg transition-colors font-semibold"
+            >
+              Vote
+            </Link>
+            <Link
               href="/upcoming"
               className="block px-4 py-2 text-mc-text hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
             >
@@ -138,6 +150,12 @@ export function MCNavbar() {
               className="block px-4 py-2 text-mc-text hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
             >
               Gallery
+            </Link>
+            <Link
+              href="/sentiment"
+              className="block px-4 py-2 text-mc-text hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+            >
+              Sentiment
             </Link>
             <Link
               href="/profile"
@@ -155,7 +173,7 @@ export function MCNavbar() {
                     Switch to Base Sepolia
                   </button>
                 )}
-                <div className="w-full px-4 py-2 bg-gradient-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-semibold text-sm flex items-center justify-between">
+                <div className="w-full px-4 py-2 bg-linear-to-r from-primary to-primary-700 text-mc-bg rounded-lg font-semibold text-sm flex items-center justify-between">
                   <span>{formatAddress(address)}</span>
                   <button
                     onClick={() => disconnect()}

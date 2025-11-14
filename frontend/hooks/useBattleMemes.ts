@@ -65,6 +65,7 @@ export function useBattleMemes(battleId: number | undefined) {
     data: memeIds,
     isLoading: isLoadingIds,
     error: idsError,
+    refetch: refetchIds,
   } = useReadContract({
     address: CONTRACTS.MEME_REGISTRY.address as `0x${string}`,
     abi: CONTRACTS.MEME_REGISTRY.abi,
@@ -94,6 +95,7 @@ export function useBattleMemes(battleId: number | undefined) {
     data: memeData,
     isLoading: isLoadingMemes,
     error: memesError,
+    refetch: refetchMemes,
   } = useReadContracts({
     contracts: memeContracts.length > 0 ? memeContracts : [],
   });
@@ -124,9 +126,15 @@ export function useBattleMemes(battleId: number | undefined) {
       });
   }, [memeData]);
 
+  const refetch = async () => {
+    await refetchIds();
+    await refetchMemes();
+  };
+
   return {
     memes,
     isLoading: isLoadingIds || isLoadingMemes,
     error: idsError || memesError,
+    refetch,
   };
 }

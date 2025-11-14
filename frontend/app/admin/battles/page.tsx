@@ -4,8 +4,18 @@ import { useMemo, useState } from "react";
 import { MCNavbar } from "@/components/mc-navbar";
 import { useAccount } from "wagmi";
 import { useCreateBattle } from "@/hooks/useCreateBattle";
+import { useManageBattlePhases } from "@/hooks/useManageBattlePhases";
+import { useBattles } from "@/hooks/useBattles";
 import { parseUnits } from "viem";
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Play,
+  Zap,
+  Trophy,
+} from "lucide-react";
+import Link from "next/link";
 
 interface FormState {
   theme: string;
@@ -46,6 +56,24 @@ export default function AdminBattlesPage() {
     ownerAddress,
     warning,
   } = useCreateBattle();
+
+  const {
+    startSubmissionPhase,
+    startVotingPhase,
+    finalizeBattle,
+    status: phaseStatus,
+    error: phaseError,
+    currentAction,
+    currentBattleId,
+    isOwnerConnected: isPhaseOwnerConnected,
+    resetState: resetPhaseState,
+  } = useManageBattlePhases();
+
+  const {
+    battles,
+    isLoading: isLoadingBattles,
+    error: battlesError,
+  } = useBattles();
 
   const buttonLabel = useMemo(() => {
     switch (status) {
@@ -385,6 +413,243 @@ export default function AdminBattlesPage() {
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* Battle Management Section */}
+          <div className="rounded-xl border border-primary/10 bg-mc-panel/60 p-6 shadow-lg shadow-primary/5 backdrop-blur">
+            <h2 className="mb-4 text-2xl font-bold text-mc-text">
+              Manage Existing Battles
+            </h2>
+            <p className="mb-6 text-sm text-mc-text/70">
+              Manage battle phases: start submission, start voting, or finalize
+              battles.
+            </p>
+
+            {phaseError && (
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{phaseError}</span>
+              </div>
+            )}
+
+            {phaseStatus === "success" && (
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-positive/30 bg-positive/10 px-4 py-3 text-sm text-mc-text">
+                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-positive" />
+                <span>
+                  Battle #{currentBattleId} phase updated successfully!
+                </span>
+              </div>
+            )}
+
+            {isLoadingBattles ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : battlesError ? (
+              <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning text-sm">
+                Error loading battles: {battlesError.message}
+              </div>
+            ) : battles.length === 0 ? (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center text-mc-text/70">
+                No battles found. Create your first battle above!
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {battles.map((battle) => {
+                  const isManaging =
+                    phaseStatus !== "idle" && currentBattleId === battle.id;
+                  const canStartSubmission =
+                    battle.state === "UPCOMING" && isPhaseOwnerConnected;
+                  const canStartVoting =
+                    battle.state === "SUBMISSION_OPEN" &&
+                    isPhaseOwnerConnected &&
+                    Date.now() / 1000 >= battle.submissionEnd;
+                  const canFinalize =
+                    battle.state === "VOTING_OPEN" &&
+                    isPhaseOwnerConnected &&
+                    Date.now() / 1000 >= battle.votingEnd;
+                  const waitingForSubmissionEnd =
+                    battle.state === "SUBMISSION_OPEN" &&
+                    isPhaseOwnerConnected &&
+                    Date.now() / 1000 < battle.submissionEnd;
+                  const waitingForVotingEnd =
+                    battle.state === "VOTING_OPEN" &&
+                    isPhaseOwnerConnected &&
+                    Date.now() / 1000 < battle.votingEnd;
+
+                  return (
+                    <div
+                      key={battle.id}
+                      className="rounded-lg border border-primary/20 bg-mc-surface/50 p-4"
+                    >
+                      <div className="mb-3 flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-mc-text">
+                              Battle #{battle.id}: {battle.theme}
+                            </h3>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                battle.state === "VOTING_OPEN"
+                                  ? "bg-positive/20 text-positive"
+                                  : battle.state === "SUBMISSION_OPEN"
+                                  ? "bg-primary/20 text-primary"
+                                  : "bg-mc-text/20 text-mc-text/70"
+                              }`}
+                            >
+                              {battle.state}
+                            </span>
+                          </div>
+                          <Link
+                            href={`/battles/${battle.id}`}
+                            className="mt-1 text-sm text-primary hover:underline"
+                          >
+                            View Battle →
+                          </Link>
+                        </div>
+                      </div>
+
+                      <div className="mb-4 grid gap-2 text-sm text-mc-text/70 sm:grid-cols-2">
+                        <div>
+                          <span className="font-semibold text-mc-text">
+                            Prize Pool:
+                          </span>{" "}
+                          ${battle.prizePool} USDC
+                        </div>
+                        <div>
+                          <span className="font-semibold text-mc-text">
+                            Min Stake:
+                          </span>{" "}
+                          ${battle.minStake} USDC
+                        </div>
+                        {battle.state === "SUBMISSION_OPEN" && (
+                          <div className="sm:col-span-2">
+                            <span className="font-semibold text-mc-text">
+                              Submission Ends:
+                            </span>{" "}
+                            {new Date(
+                              battle.submissionEnd * 1000
+                            ).toLocaleString()}
+                            {Date.now() / 1000 < battle.submissionEnd && (
+                              <span className="ml-2 text-warning">
+                                (Voting can start after this time)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {battle.state === "VOTING_OPEN" && (
+                          <div className="sm:col-span-2">
+                            <span className="font-semibold text-mc-text">
+                              Voting Ends:
+                            </span>{" "}
+                            {new Date(battle.votingEnd * 1000).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {canStartSubmission && (
+                          <button
+                            onClick={() => startSubmissionPhase(battle.id)}
+                            disabled={isManaging || phaseStatus !== "idle"}
+                            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-mc-bg transition-all hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isManaging &&
+                            currentAction === "startSubmission" ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Starting...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-4 w-4" />
+                                Start Submission Phase
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {canStartVoting && (
+                          <button
+                            onClick={() => startVotingPhase(battle.id)}
+                            disabled={isManaging || phaseStatus !== "idle"}
+                            className="flex items-center gap-2 rounded-lg bg-positive px-4 py-2 text-sm font-semibold text-mc-bg transition-all hover:bg-positive/80 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isManaging && currentAction === "startVoting" ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Starting...
+                              </>
+                            ) : (
+                              <>
+                                <Zap className="h-4 w-4" />
+                                Start Voting Phase
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {waitingForSubmissionEnd && (
+                          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-2 text-sm text-warning">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>
+                              Waiting for submission phase to end (
+                              {new Date(
+                                battle.submissionEnd * 1000
+                              ).toLocaleString()}
+                              )
+                            </span>
+                          </div>
+                        )}
+
+                        {canFinalize && (
+                          <button
+                            onClick={() => finalizeBattle(battle.id)}
+                            disabled={isManaging || phaseStatus !== "idle"}
+                            className="flex items-center gap-2 rounded-lg bg-warning px-4 py-2 text-sm font-semibold text-mc-bg transition-all hover:bg-warning/80 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isManaging && currentAction === "finalize" ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Finalizing...
+                              </>
+                            ) : (
+                              <>
+                                <Trophy className="h-4 w-4" />
+                                Finalize Battle
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {waitingForVotingEnd && (
+                          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-2 text-sm text-warning">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>
+                              Waiting for voting phase to end (
+                              {new Date(
+                                battle.votingEnd * 1000
+                              ).toLocaleString()}
+                              )
+                            </span>
+                          </div>
+                        )}
+
+                        {!canStartSubmission &&
+                          !canStartVoting &&
+                          !canFinalize &&
+                          !waitingForSubmissionEnd &&
+                          !waitingForVotingEnd && (
+                            <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-mc-text/60">
+                              No actions available for this battle state
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="rounded-xl border border-primary/10 bg-mc-panel/40 p-6 text-sm text-mc-text/70">
